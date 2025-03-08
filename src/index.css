@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+
+.txt{
+  
+  font-size: 4rem; /* Adjust font size as needed */
+  font-weight: bold; /* Adjust font weight if needed */
+  background: linear-gradient(45deg, #095960, #02374b); /* Gradient colors */
+  /* -webkit-background-clip: text; For WebKit-based browsers like Safari */
+  background-clip: text; /* Standard property */ 
+  color: transparent; /* Hide the default text color */
+  text-align: center; /* Center the text */
+  margin-bottom: 0.5rem;
+  margin-top:-1.5rem /* Adjust margin if needed */
+}
