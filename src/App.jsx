@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import DynamicForm from './components/DynamicForm';
 
 const App = () => {
@@ -8,6 +8,8 @@ const App = () => {
   const [formData, setFormData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSchemaCollapsed, setIsSchemaCollapsed] = useState(false);
+
+  const formDivRef = useRef(null);
 
   const complexSchemaExample = [
     {
@@ -211,7 +213,7 @@ const App = () => {
     setIsLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const parsedSchema = JSON.parse(jsonInput);
       if (!Array.isArray(parsedSchema)) {
         throw new Error('Schema must be an array of field objects');
@@ -221,7 +223,6 @@ const App = () => {
       setIsSchemaCollapsed(true);
     } catch (err) {
       console.log(err);
-      
       setError('Invalid JSON format. Please check your input.');
     } finally {
       setIsLoading(false);
@@ -235,11 +236,11 @@ const App = () => {
 
   const handleFormChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => {
+    setFormData((prev) => {
       const parts = name.split('.');
       let newData = { ...prev };
       let current = newData;
-      
+
       for (let i = 0; i < parts.length - 1; i++) {
         if (!current[parts[i]]) {
           current[parts[i]] = {};
@@ -247,7 +248,7 @@ const App = () => {
         current = current[parts[i]];
       }
       current[parts[parts.length - 1]] = value;
-      
+
       return newData;
     });
   };
@@ -262,17 +263,23 @@ const App = () => {
     setError('');
   };
 
+  const copyGeneratedForm = () => {
+    if (formDivRef.current) {
+      const formHtml = formDivRef.current.outerHTML;
+      navigator.clipboard.writeText(formHtml)
+        .then(() => alert("Generated form copied to clipboard!"))
+        .catch((err) => alert("Failed to copy form: " + err));
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#97ebf3] via-[#2a2ea7] to-[#271bab] py-12 px-4 sm:px-6 lg:px-8">
-
-      <h1 className='text-center txt uppercase font-extrabold '>GenForm</h1>
+      <h1 className="text-center txt uppercase font-extrabold">GenForm</h1>
       <div className="max-w-2xl mx-auto space-y-8">
         {/* JSON Input Section */}
         <div className="bg-gradient-to-br from-[#00292d] to-[#01212e] p-6 rounded-xl drop-shadow-[10px_10px_20px_rgba(0,0,0,1)]">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="md:text-xl text-base font-bold text-white">
-              Enter Form Schema
-            </h2>
+            <h2 className="md:text-xl text-base font-bold text-white">Enter Form Schema</h2>
             <div className="flex gap-4">
               <button
                 type="button"
@@ -328,9 +335,7 @@ const App = () => {
   }
 ]`}
               />
-              {error && (
-                <p className="text-red-400 text-sm mt-2">{error}</p>
-              )}
+              {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
             <button
               type="submit"
@@ -366,15 +371,27 @@ const App = () => {
         {schema && !isLoading && (
           <div className="bg-gradient-to-br from-[#00292d] to-[#01212e] p-6 rounded-xl drop-shadow-[10px_10px_20px_rgba(0,0,0,1)] animate-fadeIn">
             <h2 className="text-xl font-bold mb-4 text-white">Generated Form</h2>
-            <form onSubmit={handleFormSubmit}>
-              <DynamicForm schema={schema} onChange={handleFormChange} />
-              <button 
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                Submit
-              </button>
-            </form>
+            {/* Wrap the generated form in a div with ref */}
+            <div ref={formDivRef}>
+              <form onSubmit={handleFormSubmit}>
+                <DynamicForm schema={schema} onChange={handleFormChange} />
+                <button 
+                  type="submit"
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Submit
+                </button>
+              </form>
+            </div>
+
+            {/* Copy Generated Form Button */}
+            <button 
+              type="button"
+              onClick={copyGeneratedForm}
+              className="mt-4 w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium"
+            >
+              Copy Generated Form JSX
+            </button>
             
             {/* Display current form data */}
             <div className="mt-6">
@@ -388,6 +405,6 @@ const App = () => {
       </div>
     </div>
   );
-}
+};
 
 export default App;
